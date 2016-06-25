@@ -9,7 +9,7 @@
 
 local M = {}
 
-local CONSISTENT_BUCKETS = 1024
+local CONSISTENT_BUCKETS = 65535
 local VIRTUAL_NODE = 160
 
 local HASH_PEERS = {}
@@ -19,7 +19,6 @@ local BUCKETS = {}
 local function hash_fn(key)
     local mmh2 = require "resty.murmurhash2"
     local val = mmh2.murmur2(key)
-    print(val)
     return val;
 end
 --    local CRC = require('CRC32')
@@ -113,23 +112,23 @@ local function chash_init(PEER_ARRAY)
     BUCKETS = {}
     for i=1, CONSISTENT_BUCKETS do
         table.insert(BUCKETS, i, chash_find(math.floor(step * (i - 1))))
-    --    print(chash_find(math.floor(step * (i - 1)))[1])
-        --print(i,BUCKETS[i][1],BUCKETS[i][2])
+      --print(chash_find(math.floor(step * (i - 1)))[1])
+      --print(i .. "|" .. BUCKETS[i][1] .. "|" .. BUCKETS[i][2])
     end
 
 end
 M.init = chash_init
 
---local function chash_get_upstream_crc32(point)
---    return BUCKETS[(point % CONSISTENT_BUCKETS)+1][1]
---end
---M.get_upstream_crc32 = chash_get_upstream_crc32
---
---local function chash_get_upstream(key)
---    local point = math.floor(hash_fn(key)) 
---    return chash_get_upstream_crc32(point)
---end
---M.get_upstream = chash_get_upstream
+local function chash_get_upstream_hash(point)
+    return BUCKETS[(point % CONSISTENT_BUCKETS)+1][1]
+end
+M.get_upstream_hash = chash_get_upstream_hash
+
+local function chash_get_upstream(key)
+    local point = math.floor(hash_fn(key)) 
+    return chash_get_upstream_hash(point)
+end
+M.get_upstream = chash_get_upstream
 --
 --local function chash_add_upstream(upstream, weight)
 --    weight = weight or 1
