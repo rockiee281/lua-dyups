@@ -3,7 +3,6 @@
 -- origin by chenqi@2014/04/02
 --[Reference]
 --https://github.com/yaoweibin/ngx_http_consistent_hash
---https://github.com/davidm/lua-digest-crc32lua
 --http://www.cnblogs.com/chenny7/p/3640990.html
 
 
@@ -21,12 +20,6 @@ local function hash_fn(key)
     local val = mmh2.murmur2(key)
     return val;
 end
---    local CRC = require('CRC32')
---    local val = CRC.crc32(key)
---    return val + 0x8fffffff
-
---    local hashlib = require('hashlib')
---    return hashlib.murmurhash64b(key .. '-')
 
 -- in-place quicksort
 function quicksort(array,compareFunc)  
@@ -60,6 +53,9 @@ end
 -- binary search
 local function chash_find(point)
     local mid, lo, hi = 1, 1, #CONTINUUM
+    if point > CONTINUUM[hi][2] then
+        point = point % CONTINUUM[hi][2]
+    end
     while 1 do
         if point <= CONTINUUM[lo][2] or point > CONTINUUM[hi][2] then
             return CONTINUUM[lo]
@@ -100,20 +96,26 @@ local function chash_init(PEER_ARRAY)
     end
 
     quicksort(C, function(a,b) return a[2] > b[2] end)
-    CONTINUUM = C
+    local lo = C[1][2]
+
+    for i, peer in ipairs(C) do
+       C[i] = {peer[1], peer[2]-lo}
+    end
+
 --[[
+    CONTINUUM = C
     for i=1,#C do
-        print(CONTINUUM[i][1],CONTINUUM[i][2])
+        print('array----' .. CONTINUUM[i][1] .. '--' .. CONTINUUM[i][2])
     end
 --]]
 
     local step = math.floor(0xFFFFFFFF / CONSISTENT_BUCKETS)
 
     BUCKETS = {}
+    local hi_val = CONTINUUM[#CONTINUUM][2]
     for i=1, CONSISTENT_BUCKETS do
-        table.insert(BUCKETS, i, chash_find(math.floor(step * (i - 1))))
-      --print(chash_find(math.floor(step * (i - 1)))[1])
-      --print(i .. "|" .. BUCKETS[i][1] .. "|" .. BUCKETS[i][2])
+        local point = math.floor(step * (i - 1)) % hi_val
+        table.insert(BUCKETS, i, chash_find(point))
     end
 
 end
