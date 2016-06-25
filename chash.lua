@@ -18,15 +18,16 @@ local BUCKETS = {}
 
 local function hash_fn(key)
     local mmh2 = require "resty.murmurhash2"
-    return mmh2 key -- hash contains number 403862830
-
+    local val = mmh2.murmur2(key)
+    print(val)
+    return val;
+end
 --    local CRC = require('CRC32')
 --    local val = CRC.crc32(key)
 --    return val + 0x8fffffff
 
 --    local hashlib = require('hashlib')
 --    return hashlib.murmurhash64b(key .. '-')
-end
 
 -- in-place quicksort
 function quicksort(array,compareFunc)  
@@ -82,19 +83,20 @@ local function chash_find(point)
     end
 end
 
-local function chash_init()
-    local n = #HASH_PEERS
+local function chash_init(PEER_ARRAY)
+    local n = #PEER_ARRAY
+    HASH_PEERS = PEER_ARRAY
     if n == 0 then
         print("There is no backend servers")
         return
     end
 
     local C = {}
-    for i,peer in ipairs(HASH_PEERS) do
-        for k=1, math.floor(VIRTUAL_NODE * peer[1]) do
-            local hash_data = peer[2] .. "-" .. (k - 1)
+    for i,peer in ipairs(PEER_ARRAY) do
+        for k=1, math.floor(VIRTUAL_NODE * peer['weight']) do
+            local hash_data = peer['name'] .. "-" .. (k - 1)
 	    --print(hash_data .. '|' .. hash_fn(hash_data))
-            table.insert(C, {peer[2], hash_fn(hash_data)})
+            table.insert(C, {peer['name'], hash_fn(hash_data)})
         end
     end
 
@@ -118,33 +120,33 @@ local function chash_init()
 end
 M.init = chash_init
 
-local function chash_get_upstream_crc32(point)
-    return BUCKETS[(point % CONSISTENT_BUCKETS)+1][1]
-end
-M.get_upstream_crc32 = chash_get_upstream_crc32
-
-local function chash_get_upstream(key)
-    local point = math.floor(hash_fn(key)) 
-    return chash_get_upstream_crc32(point)
-end
-M.get_upstream = chash_get_upstream
-
-local function chash_add_upstream(upstream, weight)
-    weight = weight or 1
-    table.insert(HASH_PEERS, {weight, upstream})
-end
-M.add_upstream = chash_add_upstream
-
--- remove upstream from HASH_PEERS
-local function chash_remove_upstream(upstream)
-    for i,peer in ipairs(HASH_PEERS) do
-        if peer[2] == upstream then
-	    table.remove(HASH_PEERS, i)
-	    --print('remove ' .. peer[2])
-	end
-    end
-end
-M.remove_upstream = chash_remove_upstream
+--local function chash_get_upstream_crc32(point)
+--    return BUCKETS[(point % CONSISTENT_BUCKETS)+1][1]
+--end
+--M.get_upstream_crc32 = chash_get_upstream_crc32
+--
+--local function chash_get_upstream(key)
+--    local point = math.floor(hash_fn(key)) 
+--    return chash_get_upstream_crc32(point)
+--end
+--M.get_upstream = chash_get_upstream
+--
+--local function chash_add_upstream(upstream, weight)
+--    weight = weight or 1
+--    table.insert(HASH_PEERS, {weight, upstream})
+--end
+--M.add_upstream = chash_add_upstream
+--
+---- remove upstream from HASH_PEERS
+--local function chash_remove_upstream(upstream)
+--    for i,peer in ipairs(HASH_PEERS) do
+--        if peer[2] == upstream then
+--	    table.remove(HASH_PEERS, i)
+--	    --print('remove ' .. peer[2])
+--	end
+--    end
+--end
+--M.remove_upstream = chash_remove_upstream
 
 local function chash_get_all_upstream()
     return HASH_PEERS
