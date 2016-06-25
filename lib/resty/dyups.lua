@@ -1,5 +1,5 @@
 local b = require "ngx.balancer"
-local hc = require "healthcheck"
+local hc = require "resty.dyups.healthcheck"
 local cjson = require "cjson"
 local chash = require "resty.chash"
 
@@ -113,6 +113,5 @@ function _M.init(server_config_str)
         enable_healthcheck(server_config)
     end
 end
-
 
 return _M

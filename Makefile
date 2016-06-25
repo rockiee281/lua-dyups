@@ -11,5 +11,7 @@ INSTALL ?= install
 all: ;
 
 install: all
-	$(INSTALL) -d $(DESTDIR)/$(LUA_LIB_DIR)/resty/
-	$(INSTALL) *.lua $(DESTDIR)/$(LUA_LIB_DIR)/resty/
+	$(INSTALL) -d ${OPENRESTY_PREFIX}/lualib/resty/dyups/
+	$(INSTALL) lib/resty/*.lua ${OPENRESTY_PREFIX}/lualib/resty/
+	$(INSTALL) lib/resty/dyups/*.lua ${OPENRESTY_PREFIX}/lualib/resty/dyups/
+
