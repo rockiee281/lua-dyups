@@ -127,7 +127,7 @@ end
 M.get_upstream_hash = chash_get_upstream_hash
 
 local function chash_get_upstream(key)
-    local point = math.floor(hash_fn(key)) 
+    local point = math.floor(hash_fn(tostring(key)))
     return chash_get_upstream_hash(point)
 end
 M.get_upstream = chash_get_upstream
