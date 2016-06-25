@@ -102,8 +102,8 @@ local function chash_init(PEER_ARRAY)
        C[i] = {peer[1], peer[2]-lo}
     end
 
---[[
     CONTINUUM = C
+--[[
     for i=1,#C do
         print('array----' .. CONTINUUM[i][1] .. '--' .. CONTINUUM[i][2])
     end
