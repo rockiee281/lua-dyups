@@ -6,8 +6,6 @@
 --https://github.com/davidm/lua-digest-crc32lua
 --http://www.cnblogs.com/chenny7/p/3640990.html
 
-local CRC = require('CRC32')
---local hashlib = require('hashlib')
 
 local M = {}
 
@@ -19,14 +17,15 @@ local CONTINUUM = {}
 local BUCKETS = {}
 
 local function hash_fn(key)
-    local val = CRC.crc32(key)
-    return val + 0x8fffffff
---    if val < 0 then
---        return val + 0xffffffff
---    else
---        return val
---    end
---      return hashlib.murmurhash64b(key .. '-')
+    local mmh2 = require "resty.murmurhash2"
+    return mmh2 key -- hash contains number 403862830
+
+--    local CRC = require('CRC32')
+--    local val = CRC.crc32(key)
+--    return val + 0x8fffffff
+
+--    local hashlib = require('hashlib')
+--    return hashlib.murmurhash64b(key .. '-')
 end
 
 -- in-place quicksort
