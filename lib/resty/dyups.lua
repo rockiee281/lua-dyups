@@ -73,7 +73,12 @@ function _M.set_current_peer(hash_key)
 end
 
 local function check_server_config(config_str)
-    local config = cjson.decode(config_str)
+    local ok, config = pcall(cjson.decode, config_str)
+    if not ok then
+        ngx.log(ngx.ERR, "server config format error: JSON parsed error.")
+        return nil
+    end
+
     return config
 end
 
@@ -97,17 +102,12 @@ function _M.init(server_config_str)
         return
     end
 
-    local server_list = {}
-    local hc_config = server_config.healthcheck
-    local u = hc_config.upstream
-    local cache_server_list, err = dict:get(u)
-    if not cache_server_list then
-        server_list = server_config.server_list
-    else
-        server_list = cjson.decode(cache_server_list)
-    end
-
+    local server_list = server_config.server_list
     local up_server_list = get_up_servers(server_list)
+    if #up_server_list == 0 then
+        ngx.log(ngx.ERR, "Init servers failed: there's no live servers in this upstream")
+        return
+    end
     chash.init(up_server_list)
     if server_config.healthcheck.on == true then
         enable_healthcheck(server_config)

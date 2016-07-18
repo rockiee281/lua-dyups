@@ -536,9 +536,9 @@ local function preprocess_peers(peers)
     return peers
 end
 
-function _M.spawn_checker(config)
-    local opts = config.healthcheck
-    local typ = opts.type
+function _M.spawn_checker(opts)
+    local hc_opts = opts.healthcheck
+    local typ = hc_opts.type
     if not typ then
         return nil, "\"type\" option required"
     end
@@ -547,17 +547,17 @@ function _M.spawn_checker(config)
         return nil, "only \"http\" type is supported right now"
     end
 
-    local http_req = opts.http_req
+    local http_req = hc_opts.http_req
     if not http_req then
         return nil, "\"http_req\" option required"
     end
 
-    local timeout = opts.timeout
+    local timeout = hc_opts.timeout
     if not timeout then
         timeout = 1000
     end
 
-    local interval = opts.interval
+    local interval = hc_opts.interval
     if not interval then
         interval = 1
 
@@ -568,7 +568,7 @@ function _M.spawn_checker(config)
         end
     end
 
-    local valid_statuses = opts.valid_statuses
+    local valid_statuses = hc_opts.valid_statuses
     local statuses
     if valid_statuses then
         statuses = new_tab(0, #valid_statuses)
@@ -580,17 +580,17 @@ function _M.spawn_checker(config)
 
     -- debug("interval: ", interval)
 
-    local concur = opts.concurrency
+    local concur = hc_opts.concurrency
     if not concur then
         concur = 1
     end
 
-    local fall = opts.fall
+    local fall = hc_opts.fall
     if not fall then
         fall = 5
     end
 
-    local rise = opts.rise
+    local rise = hc_opts.rise
     if not rise then
         rise = 2
     end
@@ -600,7 +600,7 @@ function _M.spawn_checker(config)
         return nil, "shm dyups not found"
     end
 
-    local u = config.upstream
+    local u = opts.upstream
     if not u then
         return nil, "no upstream specified"
     end
