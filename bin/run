@@ -1,0 +1,38 @@
+#!/bin/bash
+
+
+real_path=`dirname $(readlink -f $0)`
+base_path=`dirname $real_path`
+
+
+#sudo useradd www -s /sbin/nologin
+
+mkdir -p ${base_path}/logs
+
+if [ $1 = 'd' ]; then
+docker run \
+       --name=nginx \
+       -d \
+       --net=host \
+       -v ${base_path}/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf \
+       -v ${base_path}/conf/conf.d:/usr/local/openresty/nginx/conf/conf.d \
+       -v ${base_path}/logs:/usr/local/openresty/nginx/logs \
+       -v ${base_path}/lib:/usr/local/openresty/nginx/lua \
+       -v /etc/passwd:/etc/passwd \
+       -v /etc/group:/etc/group \
+       registry.corp.qunar.com/library/openresty \
+       /usr/local/openresty/nginx/sbin/nginx
+else
+
+docker run \
+       --name=nginx \
+       -it --rm=true --entrypoint=sh \
+       --net=host \
+       -v ${base_path}/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf \
+       -v ${base_path}/conf/vhost:/usr/local/openresty/nginx/conf/vhost \
+       -v ${base_path}/logs:/usr/local/openresty/nginx/logs \
+       -v ${base_path}/bin/start_nginx.sh:/start_nginx.sh \
+       -v /etc/passwd:/etc/passwd \
+       -v /etc/group:/etc/group \
+       registry.corp.qunar.com/library/openresty
+fi
